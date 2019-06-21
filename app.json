@@ -3,7 +3,7 @@
     "name": "ScanIt",
     "slug": "Scanner",
     "privacy": "public",
-    "sdkVersion": "33.0.0",
+    "sdkVersion": "32.0.0",
     "platforms": [
       "ios",
       "android",
@@ -16,6 +16,9 @@
       "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
+    },
+    "android":{
+      "package":"com.sktech.scanit"
     },
     "updates": {
       "fallbackToCacheTimeout": 0
