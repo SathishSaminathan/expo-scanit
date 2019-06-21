@@ -1,19 +1,36 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { Component } from "react";
+import { Text, View, StyleSheet, Button } from "react-native";
+import { Permissions, BarCodeScanner } from "expo";
+import Scanner from "./app/components/Scanner/Scanner";
 
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-    </View>
-  );
+export default class App extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      hasCameraPermission: null,
+      scanned: false
+    };
+  }
+
+  async componentDidMount() {
+    const { status } = await Permissions.askAsync(Permissions.CAMERA);
+    this.setState({ hasCameraPermission: status === "granted" });
+  }
+
+  handleBarCodeScanned = ({ type, data }) => {
+    this.setState({ scanned: true });
+    alert(`Bar code with type ${type} and data ${data} has been scanned!`);
+  };
+
+  render() {
+    const { hasCameraPermission, scanned } = this.state;
+
+    if (hasCameraPermission === null) {
+      return <Text>Requesting for camera permission</Text>;
+    }
+    if (hasCameraPermission === false) {
+      return <Text>No access to camera</Text>;
+    }
+    return <Scanner />;
+  }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
