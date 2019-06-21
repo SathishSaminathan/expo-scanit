@@ -10,6 +10,10 @@ import {
 import { BarCodeScanner } from "expo-barcode-scanner";
 import { Permissions, Constants } from "expo";
 import { Feather } from "@expo/vector-icons";
+import { Snackbar } from "react-native-paper";
+
+import Loader from "../Loader/Loader";
+import ErrorPage from "../ErrorPage/ErrorPage";
 
 const { width, height } = Dimensions.get("window");
 const qrSize = width * 0.7;
@@ -28,33 +32,35 @@ class Scanner extends Component {
   _requestCameraPermission = async () => {
     const { status } = await Permissions.askAsync(Permissions.CAMERA);
     this.setState({
-      hasCameraPermission: status === "granted"
+      hasCameraPermission: status 
     });
   };
 
   handleBarCodeScanned = ({ type, data }) => {
     this.setState({ scanned: true });
-    console.log("type:", type);
-    this.setState(
-      {
-        data: data && JSON.parse(data)
-      },
-      () => console.log("data:", this.state.data.age)
-    );
+    try {
+      this.setState(
+        {
+          data: data && JSON.parse(data),
+          visible: true
+        },
+        // () => console.log("data:", this.state.data.age)
+      );
+    } catch (err) {
+      this.setState({
+        visible: true
+      });
+    }
   };
 
   render() {
-    const { hasCameraPermission, scanned } = this.state;
+    const { hasCameraPermission, scanned, visible } = this.state;
 
     if (hasCameraPermission === null) {
-      return (
-        <Text style={styles.statusBarHeight}>
-          Requesting for camera permission
-        </Text>
-      );
+      return <Loader />;
     }
-    if (hasCameraPermission === false) {
-      return <Text style={styles.statusBarHeight}>No access to camera</Text>;
+    if (hasCameraPermission === "denied") {
+      return <ErrorPage askPermission={()=>this._requestCameraPermission()}/>;
     }
 
     return (
@@ -68,19 +74,34 @@ class Scanner extends Component {
           source={require("../../../assets/images/scanner.png")}
         />
         {scanned && (
-          // <Text
-          //   style={styles.cancel}
-          //   onPress={() => this.setState({ scanned: false })}
-          // >
-          //   Tap to Scan Again
-          // </Text>
           <Feather
             name="refresh-ccw"
             style={styles.rescanIcon}
             onPress={() => this.setState({ scanned: false })}
           />
         )}
-        <Feather name="x" style={styles.cancel} />
+        <Feather
+          name="x"
+          style={styles.cancel}
+          onPress={() => this.props.navigation.goBack()}
+        />
+        <Snackbar
+          visible={visible}
+          onDismiss={() => this.setState({ visible: false, data: {} })}
+          action={{
+            label: "Undo",
+            onPress: () => {
+              // Do something
+            }
+          }}
+          duration={3000}
+        >
+          {this.state.data.name
+            ? `Data got from the QR Code are...${this.state.data.name} and ${
+                this.state.data.age
+              }`
+            : "Sorry wrong QR Code Scanned"}
+        </Snackbar>
       </BarCodeScanner>
     );
   }
